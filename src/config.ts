@@ -17,3 +17,16 @@ export const CONTACT_ENDPOINT: string =
 
 /** Phone number shown to the visitor if a submission fails. */
 export const CONTACT_PHONE = "215-752-3409";
+
+/**
+ * Cloudflare Turnstile site key. Public by design — it identifies the widget
+ * and is meant to appear in the page. The matching SECRET is never stored
+ * here; it lives in the Apps Script project's Script Properties.
+ *
+ * Leave blank to disable the bot check entirely (the form still works). See
+ * README.md ("Bot protection") for how to generate a key.
+ */
+const TURNSTILE_SITE_KEY_FALLBACK = "0x4AAAAAAELff_whr2A3YJQm";
+
+export const TURNSTILE_SITE_KEY: string =
+  import.meta.env.VITE_TURNSTILE_SITE_KEY ?? TURNSTILE_SITE_KEY_FALLBACK;

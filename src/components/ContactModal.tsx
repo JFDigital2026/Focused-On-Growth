@@ -1,8 +1,36 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, CheckCircle2 } from "lucide-react";
 import Button from "./Button";
-import { CONTACT_ENDPOINT, CONTACT_PHONE } from "../config";
+import { CONTACT_ENDPOINT, CONTACT_PHONE, TURNSTILE_SITE_KEY } from "../config";
+
+const TURNSTILE_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+
+/**
+ * Loads Cloudflare's Turnstile script once, on first use, and resolves when
+ * the API is ready. Loading it lazily keeps it off every page view; it is
+ * only needed when someone opens the contact form.
+ */
+let turnstileLoader: Promise<void> | null = null;
+function loadTurnstile(): Promise<void> {
+  if (window.turnstile) return Promise.resolve();
+  if (turnstileLoader) return turnstileLoader;
+
+  turnstileLoader = new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = TURNSTILE_SRC;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => {
+      turnstileLoader = null;
+      reject(new Error("Failed to load Turnstile."));
+    };
+    document.head.appendChild(script);
+  });
+
+  return turnstileLoader;
+}
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -22,7 +50,19 @@ export interface ContactFormValues {
   advisor: string;
   /** Honeypot. Always empty for real people; bots fill it in. */
   company: string;
+  /** Cloudflare Turnstile token, verified server side. */
+  turnstileToken: string;
+  /** How long the form was open before submit. Bots submit instantly. */
+  elapsedMs: number;
 }
+
+/**
+ * A submission the server deliberately turned down (rate limited, failed
+ * verification, invalid field). The message is written for the visitor, so
+ * the modal shows it verbatim. Transport failures throw a plain Error
+ * instead and fall back to "call us".
+ */
+class SubmissionRejected extends Error {}
 
 /**
  * Delivers a contact form submission to the Google Apps Script web app,
@@ -51,7 +91,7 @@ async function submitContactForm(values: ContactFormValues): Promise<void> {
 
   const result = await response.json();
   if (!result.ok) {
-    throw new Error(result.error || "Submission was rejected.");
+    throw new SubmissionRejected(result.error || "Submission was rejected.");
   }
 }
 
@@ -60,13 +100,62 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
   const [succeeded, setSucceeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const turnstileRef = useRef<HTMLDivElement | null>(null);
+  const widgetIdRef = useRef<string | null>(null);
+  const tokenRef = useRef<string>("");
+  const openedAtRef = useRef<number>(0);
+
   // Reset back to a blank form the next time the modal is opened.
   useEffect(() => {
     if (!isOpen) return;
     setSubmitting(false);
     setSucceeded(false);
     setError(null);
+    tokenRef.current = "";
+    openedAtRef.current = Date.now();
   }, [isOpen]);
+
+  // Mount the Turnstile widget while the form is showing, and tear it down
+  // when the modal closes so reopening gets a fresh challenge.
+  useEffect(() => {
+    if (!isOpen || succeeded || !TURNSTILE_SITE_KEY) return;
+
+    let cancelled = false;
+
+    loadTurnstile()
+      .then(() => {
+        if (cancelled || !turnstileRef.current || !window.turnstile) return;
+        widgetIdRef.current = window.turnstile.render(turnstileRef.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          callback: (token: string) => {
+            tokenRef.current = token;
+          },
+          "expired-callback": () => {
+            tokenRef.current = "";
+          },
+          "error-callback": () => {
+            tokenRef.current = "";
+          },
+          theme: "light",
+          size: "flexible",
+        });
+      })
+      .catch((err) => {
+        console.error("[ContactModal] Turnstile failed to load:", err);
+      });
+
+    return () => {
+      cancelled = true;
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.remove(widgetIdRef.current);
+        } catch {
+          // Widget was already torn down; nothing to clean up.
+        }
+      }
+      widgetIdRef.current = null;
+    };
+  }, [isOpen, succeeded]);
 
   // Close on Escape while the modal is open.
   useEffect(() => {
@@ -81,6 +170,14 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = new FormData(e.currentTarget);
+
+    // Turnstile usually resolves on its own within a second of the form
+    // opening. If it has not, say so rather than posting a doomed request.
+    if (TURNSTILE_SITE_KEY && !tokenRef.current) {
+      setError("Still verifying you are human. Give it a second and try again.");
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
 
@@ -94,11 +191,26 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
         consent: data.get("consent") === "on",
         advisor,
         company: String(data.get("company") ?? ""),
+        turnstileToken: tokenRef.current,
+        elapsedMs: openedAtRef.current ? Date.now() - openedAtRef.current : 0,
       });
       setSucceeded(true);
     } catch (err) {
       console.error("[ContactModal] submission failed:", err);
-      setError(`Something went wrong. Please call us at ${CONTACT_PHONE}.`);
+      setError(
+        err instanceof SubmissionRejected
+          ? err.message
+          : `Something went wrong. Please call us at ${CONTACT_PHONE}.`
+      );
+      // A token is single use. Get a fresh one before the visitor retries.
+      tokenRef.current = "";
+      if (widgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.reset(widgetIdRef.current);
+        } catch {
+          // Non fatal; the visitor can reload if verification is stuck.
+        }
+      }
     } finally {
       setSubmitting(false);
     }
@@ -274,6 +386,10 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
                         I Consent to Receive SMS Notifications, Alerts & Occasional Marketing Communication from company. Message frequency varies. You can reply STOP to unsubscribe at any time.
                       </span>
                     </label>
+
+                    {TURNSTILE_SITE_KEY && (
+                      <div ref={turnstileRef} className="flex justify-center" />
+                    )}
 
                     {error && (
                       <p role="alert" className="text-red-500 text-[10px] font-medium">

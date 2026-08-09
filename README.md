@@ -88,5 +88,55 @@ Then run `npm run dev`, submit the form, and check the inbox.
 - **Advisor requests:** the "Request an appointment" button on each advisor's section opens the form with that advisor recorded, shown to the visitor as "Meeting With". The name appears in the email subject and in the "Meeting with" line. Generic Contact buttons leave it blank, which shows as "No preference".
 - **Required fields:** first name, last name, phone and email. The message and the SMS consent checkbox are optional.
 - **Spam:** the form carries a hidden honeypot field named `company`. Real people never fill it; bots do. The script silently drops anything that has it filled.
-- **Limits:** consumer Gmail accounts can send 100 emails/day through Apps Script. Well beyond expected volume.
 - **Failures are honest.** If the endpoint is unreachable or misconfigured, the visitor sees an error with the phone number. The form never shows a false "Message Sent!".
+
+## Bot protection
+
+Layers, outermost first. Everything that matters is enforced in `Code.gs`, because a bot posts straight to the `/exec` URL and never runs the site's JavaScript.
+
+| Layer | What it does |
+| --- | --- |
+| Cloudflare Turnstile | Rejects anything without a valid, Cloudflare-verified token. The only measure that stops a determined bot. |
+| Honeypot | Hidden `company` field. Filled means bot; silently dropped. |
+| Time to fill | Submissions completed in under 3 seconds are dropped. |
+| Validation | Email format, phone digit count, length caps, body size limit. |
+| Duplicate detection | Same person and message within 10 minutes is not re-sent. |
+| Burst limit | 10 submissions per minute across the whole site. |
+| Per email / per phone | 3 per hour each. |
+| Daily cap | 80 emails/day, under Gmail's 100/day ceiling. |
+| Spam heuristics | Link flooding, markup, all caps, junk names. Flags rather than discards. |
+
+**Apps Script cannot see the visitor's IP address**, so per-IP limiting is impossible. The rate limits key on email and phone, which a bot can rotate. That is exactly why Turnstile carries the weight; the limits are a backstop that guarantees the Gmail quota survives.
+
+### Turnstile setup
+
+1. In the Cloudflare dashboard go to **Turnstile → Add widget**.
+2. Name it, add hostname `focusedongrowth.com` (add `localhost` too if you want it working in local dev).
+3. Widget mode: **Managed**. Create.
+4. Copy the **Site Key** into `TURNSTILE_SITE_KEY` in [`src/config.ts`](src/config.ts). It is public and belongs in the page.
+5. Copy the **Secret Key** into Apps Script: **Project Settings → Script Properties → Add script property**, name `TURNSTILE_SECRET`. Never put the secret in this repo.
+6. Redeploy the script (**Manage deployments → pencil → New version**).
+
+Until `TURNSTILE_SECRET` is set the script skips verification, and until the site key is set the widget does not render, so the form keeps working throughout the rollout.
+
+### Testing the form locally
+
+`localhost` is not on the widget's hostname allowlist, so Turnstile answers with error `110200` (invalid domain) during local development and the form refuses to submit. That is correct behaviour, not a bug.
+
+To work on the form locally, create `.env.local` (it is gitignored) with Cloudflare's public test keys:
+
+```
+VITE_TURNSTILE_SITE_KEY="1x00000000000000000000AA"
+```
+
+That key always passes. Use `2x00000000000000000000AB` to test the blocked path. Alternatively, add `localhost` as a hostname on the widget in the Cloudflare dashboard.
+
+### Submission log
+
+Every accepted submission is appended to a Google Sheet before the email is attempted, so nothing is lost when the daily cap is hit or mail fails. The Sheet is created automatically on the first submission and lives in the Drive of the account that owns the script.
+
+To find it, open the script editor, select `showLogSheetUrl` in the function dropdown, click **Run**, and read the URL from the execution log.
+
+### Tuning
+
+The limits are constants at the top of `Code.gs` (`MAX_EMAILS_PER_DAY`, `MAX_PER_MINUTE`, `MAX_PER_EMAIL_PER_HOUR`, and so on). Change and redeploy to adjust.
