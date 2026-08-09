@@ -165,7 +165,7 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
                   {advisor && (
                     <div className="mb-8 rounded-2xl bg-[#1999f0]/10 border border-[#1999f0]/20 px-4 py-3">
                       <div className="text-[10px] font-bold text-[#191919]/50 uppercase tracking-widest mb-0.5">
-                        Requesting
+                        Meeting With
                       </div>
                       <div className="text-sm font-bold text-[#191919]">{advisor}</div>
                     </div>

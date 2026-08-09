@@ -64,7 +64,7 @@ function doPost(e) {
       'Name:     ' + fullName,
       'Phone:    ' + phone,
       'Email:    ' + email,
-      'Advisor requested: ' + (advisor || 'No preference'),
+      'Meeting with: ' + (advisor || 'No preference'),
       'SMS consent: ' + (consent ? 'Yes' : 'No'),
       'Submitted: ' + submittedAt,
       '',
@@ -74,7 +74,7 @@ function doPost(e) {
 
     // Put the advisor in the subject so it is visible from the inbox list.
     var subject = advisor
-      ? 'Website inquiry for ' + advisor + ': ' + fullName
+      ? 'Website inquiry, meeting with ' + advisor + ': ' + fullName
       : 'Website inquiry: ' + fullName;
 
     MailApp.sendEmail({
