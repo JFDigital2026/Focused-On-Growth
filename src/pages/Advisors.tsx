@@ -9,7 +9,7 @@ interface AdvisorProps {
   image: string;
   laptopImage: string;
   isReversed?: boolean;
-  onOpenContact: () => void;
+  onOpenContact: (advisor?: string) => void;
 }
 
 const AdvisorSection: React.FC<AdvisorProps> = ({ name, title, bio, image, laptopImage, isReversed, onOpenContact }) => {
@@ -68,8 +68,8 @@ const AdvisorSection: React.FC<AdvisorProps> = ({ name, title, bio, image, lapto
             </div>
 
             <div className="flex justify-center md:justify-start">
-              <Button 
-                onClick={onOpenContact}
+              <Button
+                onClick={() => onOpenContact(name)}
                 variant={isReversed ? "primary" : "secondary"}
                 className={`${isReversed ? "" : "border-secondary text-secondary hover:bg-secondary hover:text-white"} w-full md:w-auto`}
               >
@@ -105,7 +105,7 @@ const AdvisorSection: React.FC<AdvisorProps> = ({ name, title, bio, image, lapto
   );
 };
 
-export default function Advisors({ onOpenContact }: { onOpenContact: () => void }) {
+export default function Advisors({ onOpenContact }: { onOpenContact: (advisor?: string) => void }) {
   const advisors = [
     {
       name: "David Schimpf",
@@ -199,7 +199,7 @@ export default function Advisors({ onOpenContact }: { onOpenContact: () => void 
             </p>
 
             <div className="flex items-center justify-center">
-              <Button onClick={onOpenContact} showIcon={false} className="px-10 py-4">
+              <Button onClick={() => onOpenContact()} showIcon={false} className="px-10 py-4">
                 Get in touch
               </Button>
             </div>

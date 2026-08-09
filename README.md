@@ -85,6 +85,8 @@ Then run `npm run dev`, submit the form, and check the inbox.
 - **Changing the script later:** edit the code, then **Deploy → Manage deployments → pencil icon → Version: New version → Deploy**. Creating a brand new deployment instead generates a different URL and you would have to update `config.ts`.
 - **Where the mail goes** is set by `RECIPIENT` at the top of `Code.gs`, not by the site.
 - **Reply-To** is set to the submitter's email, so replying in Gmail goes straight to them.
+- **Advisor requests:** the "Request an appointment" button on each advisor's section opens the form with that advisor recorded. The name appears in the email subject and body. Generic Contact buttons leave it blank, which shows as "No preference".
+- **Required fields:** first name, last name, phone and email. The message and the SMS consent checkbox are optional.
 - **Spam:** the form carries a hidden honeypot field named `company`. Real people never fill it; bots do. The script silently drops anything that has it filled.
 - **Limits:** consumer Gmail accounts can send 100 emails/day through Apps Script. Well beyond expected volume.
 - **Failures are honest.** If the endpoint is unreachable or misconfigured, the visitor sees an error with the phone number. The form never shows a false "Message Sent!".

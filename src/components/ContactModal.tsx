@@ -7,6 +7,8 @@ import { CONTACT_ENDPOINT, CONTACT_PHONE } from "../config";
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Advisor the visitor asked for. Blank when opened from a generic CTA. */
+  advisor?: string;
 }
 
 export interface ContactFormValues {
@@ -16,6 +18,8 @@ export interface ContactFormValues {
   email: string;
   message: string;
   consent: boolean;
+  /** Name of the requested advisor, or "" if none was specified. */
+  advisor: string;
   /** Honeypot. Always empty for real people; bots fill it in. */
   company: string;
 }
@@ -51,7 +55,7 @@ async function submitContactForm(values: ContactFormValues): Promise<void> {
   }
 }
 
-export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
+export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [succeeded, setSucceeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,6 +92,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
         email: String(data.get("email") ?? ""),
         message: String(data.get("message") ?? ""),
         consent: data.get("consent") === "on",
+        advisor,
         company: String(data.get("company") ?? ""),
       });
       setSucceeded(true);
@@ -153,9 +158,20 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 </motion.div>
               ) : (
                 <>
-                  <p className="text-[#191919]/70 text-sm mb-10 font-medium leading-relaxed">
+                  <p className="text-[#191919]/70 text-sm mb-6 font-medium leading-relaxed">
                     At Focused On Growth Financial Group we work with you to determine the method of investing most appropriate to meet your goals based on your unique circumstances and personal objectives.
                   </p>
+
+                  {advisor && (
+                    <div className="mb-8 rounded-2xl bg-[#1999f0]/10 border border-[#1999f0]/20 px-4 py-3">
+                      <div className="text-[10px] font-bold text-[#191919]/50 uppercase tracking-widest mb-0.5">
+                        Requesting
+                      </div>
+                      <div className="text-sm font-bold text-[#191919]">{advisor}</div>
+                    </div>
+                  )}
+
+                  {!advisor && <div className="mb-4" />}
 
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {/*
@@ -250,7 +266,6 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         <input
                           type="checkbox"
                           name="consent"
-                          required
                           className="peer h-4 w-4 cursor-pointer appearance-none rounded border-2 border-[#191919]/20 transition-all checked:bg-[#1999f0] checked:border-[#1999f0]"
                         />
                         <svg className="absolute h-4 w-4 pointer-events-none hidden peer-checked:block text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>

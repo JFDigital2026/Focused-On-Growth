@@ -24,6 +24,7 @@ function ScrollToTop() {
 
 function AppContent() {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [requestedAdvisor, setRequestedAdvisor] = useState("");
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -31,7 +32,18 @@ function AppContent() {
     restDelta: 0.001
   });
 
-  const openContact = () => setIsContactModalOpen(true);
+  /**
+   * Opens the contact modal. Pass an advisor name to record who the visitor
+   * is asking for; a generic Contact button leaves it blank.
+   *
+   * Button forwards the native click event to its onClick, so a bare
+   * onClick={openContact} would arrive here with a MouseEvent. Only accept
+   * an actual string.
+   */
+  const openContact = (advisor?: unknown) => {
+    setRequestedAdvisor(typeof advisor === "string" ? advisor : "");
+    setIsContactModalOpen(true);
+  };
 
   return (
     <div className="relative min-h-screen">
@@ -53,9 +65,10 @@ function AppContent() {
 
       <Footer />
 
-      <ContactModal 
-        isOpen={isContactModalOpen} 
-        onClose={() => setIsContactModalOpen(false)} 
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+        advisor={requestedAdvisor}
       />
     </div>
   );
