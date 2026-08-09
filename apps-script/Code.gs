@@ -247,26 +247,76 @@ function doGet() {
  * form keeps working before Turnstile is set up.
  */
 function verifyTurnstile(token) {
-  var secret = PropertiesService.getScriptProperties().getProperty('TURNSTILE_SECRET');
+  var raw = PropertiesService.getScriptProperties().getProperty('TURNSTILE_SECRET');
+  // Trim: pasting a key into Script Properties very often carries a trailing
+  // space or newline, which Cloudflare rejects as invalid-input-secret.
+  var secret = raw ? String(raw).trim() : '';
+
   if (!secret) {
     return { ok: true, skipped: true };
   }
   if (!token) {
-    return { ok: false };
+    return { ok: false, codes: ['missing-input-response'] };
   }
 
   try {
     var res = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'post',
-      payload: { secret: secret, response: String(token) },
+      payload: { secret: secret, response: String(token).trim() },
       muteHttpExceptions: true
     });
     var body = JSON.parse(res.getContentText());
-    return { ok: body.success === true };
+
+    if (body.success !== true) {
+      // Cloudflare says exactly why. Without this it is guesswork.
+      console.error('Turnstile rejected: ' + JSON.stringify(body['error-codes'] || []) +
+                    ' hostname=' + (body.hostname || 'n/a'));
+    }
+    return { ok: body.success === true, codes: body['error-codes'] || [] };
   } catch (err) {
     console.error('Turnstile verification error: ' + err);
     // Fail closed. A verification outage must not become an open door.
-    return { ok: false };
+    return { ok: false, codes: ['fetch-failed'] };
+  }
+}
+
+/**
+ * Run this from the editor to check the stored secret without needing a real
+ * token. Reads the result from the execution log.
+ *
+ *   invalid-input-response  -> the secret is CORRECT (only the dummy token
+ *                              was rejected). Look elsewhere.
+ *   invalid-input-secret    -> the secret is wrong, or belongs to a
+ *                              different Turnstile widget.
+ *   (no secret configured)  -> the Script Property is missing or misnamed.
+ */
+function testTurnstileSecret() {
+  var raw = PropertiesService.getScriptProperties().getProperty('TURNSTILE_SECRET');
+  if (!raw) {
+    console.log('No TURNSTILE_SECRET script property found. Check the name is exact.');
+    return;
+  }
+
+  var secret = String(raw).trim();
+  console.log('Secret found. Length: ' + secret.length +
+              ' | had surrounding whitespace: ' + (secret !== String(raw)) +
+              ' | starts with: ' + secret.slice(0, 8) + '...');
+
+  var res = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'post',
+    payload: { secret: secret, response: 'dummy-token-for-diagnostics' },
+    muteHttpExceptions: true
+  });
+  var body = JSON.parse(res.getContentText());
+  var codes = body['error-codes'] || [];
+  console.log('Cloudflare replied: ' + JSON.stringify(body));
+
+  if (codes.indexOf('invalid-input-secret') > -1) {
+    console.log('RESULT: the secret is WRONG. Copy it again from the Turnstile widget page.');
+  } else if (codes.indexOf('invalid-input-response') > -1) {
+    console.log('RESULT: the secret is CORRECT. The dummy token was rejected, as expected.');
+  } else {
+    console.log('RESULT: unexpected reply, see the raw response above.');
   }
 }
 
