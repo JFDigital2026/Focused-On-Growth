@@ -66,19 +66,26 @@ export default function Hero({ onOpenContact }: HeroProps) {
                   <Button variant="secondary" onClick={() => navigate('/services')} className="text-xs md:text-base py-2.5 md:py-4 px-4 md:px-8">Services</Button>
                 </div>
                 
-                <div className="flex items-center gap-4 md:gap-6">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-3 md:gap-x-8 lg:gap-x-4">
                   <div>
                     <div className="text-xl md:text-4xl lg:text-3xl font-bold">
                       <Counter value={20} />+
                     </div>
                     <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">Years Exp</div>
                   </div>
-                  <div className="w-px h-8 md:h-12 lg:h-10 bg-secondary/20" />
+                  <div className="hidden lg:block w-px h-8 md:h-12 lg:h-10 bg-secondary/20" />
                   <div>
                     <div className="text-xl md:text-4xl lg:text-3xl font-bold">
-                      $<Counter value={150} />m+
+                      $<Counter value={100} />M
                     </div>
-                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">Managed</div>
+                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">AUM (Personal)</div>
+                  </div>
+                  <div className="hidden lg:block w-px h-8 md:h-12 lg:h-10 bg-secondary/20" />
+                  <div>
+                    <div className="text-xl md:text-4xl lg:text-3xl font-bold">
+                      $<Counter value={200} />M
+                    </div>
+                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">AUM (Team)</div>
                   </div>
                 </div>
               </div>
@@ -87,7 +94,7 @@ export default function Hero({ onOpenContact }: HeroProps) {
               <div className="lg:hidden order-2 relative">
                 <div className="relative z-10 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
                   <img 
-                    src="https://drive.google.com/thumbnail?id=1DrLz8Phy9ezfCmxgRxtJyXKg21CnGgjT&sz=w1000" 
+                    src="/images/hero-founders.jpg" 
                     alt="Focused On Growth Founders" 
                     className="w-full h-auto object-cover"
                   />
@@ -107,7 +114,7 @@ export default function Hero({ onOpenContact }: HeroProps) {
           >
             <div className="relative z-10 rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
               <img 
-                src="https://drive.google.com/thumbnail?id=1DrLz8Phy9ezfCmxgRxtJyXKg21CnGgjT&sz=w1000" 
+                src="/images/hero-founders.jpg" 
                 alt="Focused On Growth Founders" 
                 className="w-full h-auto object-cover"
               />

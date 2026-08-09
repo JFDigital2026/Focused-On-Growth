@@ -22,14 +22,12 @@ const AdvisorSection: React.FC<AdvisorProps> = ({ name, title, bio, image, lapto
           src={image} 
           alt={name} 
           className="w-full h-full object-cover grayscale opacity-20 lg:hidden"
-          referrerPolicy="no-referrer"
         />
         {/* Laptop Background */}
         <img 
           src={laptopImage} 
           alt={name} 
           className="hidden lg:block w-full h-full object-cover grayscale opacity-40"
-          referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-primary via-primary/40 to-primary lg:hidden" />
         <div className={`absolute inset-0 hidden lg:block bg-gradient-to-r ${isReversed ? 'from-transparent via-primary/20 to-primary' : 'from-primary via-primary/20 to-transparent'}`} />
@@ -54,7 +52,6 @@ const AdvisorSection: React.FC<AdvisorProps> = ({ name, title, bio, image, lapto
                   src={image} 
                   alt={name} 
                   className="w-full h-full object-cover grayscale"
-                  referrerPolicy="no-referrer"
                 />
               </div>
             </div>
@@ -97,7 +94,6 @@ const AdvisorSection: React.FC<AdvisorProps> = ({ name, title, bio, image, lapto
                 src={image} 
                 alt={name} 
                 className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
-                referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-accent/10 group-hover:bg-transparent transition-colors duration-700" />
             </motion.div>
@@ -117,8 +113,8 @@ export default function Advisors({ onOpenContact }: { onOpenContact: () => void 
       bio: [
         "David started in the financial services industry in 2005. With over two decades of experience, he brings a unique perspective and expertise to managing money through various marketing environments. Specializing in retirement planning, employer sponsored plans, and portfolio analysis and construction, Dave personally manages over 85 million in assets. He holds a series 6, 63, 65 and 26 investment license, as well as an MLO, life insurance, and personal lines license."
       ],
-      image: "https://drive.google.com/thumbnail?id=1B4WZHBSONmfdGg5Lsz12e_b4Ug4uAEUH&sz=w1000",
-      laptopImage: "https://drive.google.com/thumbnail?id=1pLoCXuf1BjbMDs7DU4GiEcG_BAcV_y7N&sz=w1000"
+      image: "/images/advisor-david-schimpf.png",
+      laptopImage: "/images/advisor-david-schimpf-laptop.png"
     },
     {
       name: "Kiley Haws",
@@ -128,8 +124,8 @@ export default function Advisors({ onOpenContact }: { onOpenContact: () => void 
         "After graduating from Pennsbury High School, I began studying sonography at Bucks County Community College, never expecting my path would lead me into finance. After connecting with Dave Schimpf and working alongside him as his assistant, I gained firsthand insight into the financial industry and the challenges everyday families face. What started as a support role quickly became a calling. Seeing how confusing and overwhelming financial planning can feel inspired me to transition into personal finance with the goal of doing things differently.",
         "Today, at Focused on Growth Financial Group, I’m passionate about helping individuals and families build wealth with clarity, confidence, and long-term strategy. I strive to build lasting relationships with my clients and serve as a trusted partner through every stage of life and every financial milestone."
       ],
-      image: "https://drive.google.com/thumbnail?id=1EahA1OO8_80mOzSSRjBBaDNnFR2ezMUS&sz=w1000",
-      laptopImage: "https://drive.google.com/thumbnail?id=1hNvBZj2RPNGiZ7C6VwEVKivFx8Td0Hid&sz=w1000",
+      image: "/images/advisor-kiley-haws.png",
+      laptopImage: "/images/advisor-kiley-haws-laptop.png",
       isReversed: true
     },
     {
@@ -139,18 +135,18 @@ export default function Advisors({ onOpenContact }: { onOpenContact: () => void 
         "Growing up in a household where money was tight, I learned early on what it meant to live modestly. In high school, I watched friends day trade, making what seemed like easy money. Curious and eager, I tried it myself — and quickly lost everything I put in. That experience opened my eyes to the lack of financial education in the school system.",
         "Soon after, I was introduced to Focused On Growth Financial Group, where I discovered a completely different approach — one centered on education. I realized that most people aren’t lacking ambition; they’re lacking financial knowledge. Over the past four years, I’ve made it my mission to help individuals understand how money works and create a clear path toward their goals and dreams. When someone leaves a conversation feeling empowered, informed, and confident about their future, that’s what makes it all worth it."
       ],
-      image: "https://drive.google.com/thumbnail?id=1ydKJ3zWCZXNiFvTPpvjfiPt2YNlo8jBK&sz=w1000",
-      laptopImage: "https://drive.google.com/thumbnail?id=1iK1I760lLSWPO-MyiBv5-kseIBoZIF0P&sz=w1000"
+      image: "/images/advisor-jace-freeman.png",
+      laptopImage: "/images/advisor-jace-freeman-laptop.png"
     },
     {
       name: "Liana Jones",
-      title: "Insurance Specialist",
+      title: "Investment Advisor Representative",
       bio: [
         "Liana graduated in 2024 from Penn State University with a degree in Finance, where she also competed as a four-year Division I softball player. Liana currently holds her life insurance license and is actively working toward completing her securities licensing exams.",
         "She is passionate about building meaningful relationships and is committed to helping her clients feel confident and informed in their financial decisions. Dedicated, hardworking, and driven to continuously grow, Liana strives to provide thoughtful guidance and dependable support to every client she serves."
       ],
-      image: "https://drive.google.com/thumbnail?id=1q2-jzZ7Ac7tpmNCFW-Vhp6YWvBz6dxHg&sz=w1000",
-      laptopImage: "https://drive.google.com/thumbnail?id=1sTuGb-ENTmxIPwAMXBzTDo-muUyW9mK7&sz=w1000",
+      image: "/images/advisor-liana-jones.png",
+      laptopImage: "/images/advisor-liana-jones-laptop.png",
       isReversed: true
     },
     {
@@ -160,8 +156,8 @@ export default function Advisors({ onOpenContact }: { onOpenContact: () => void 
         "Rochelle Beck is an investment advisor based in Sullivan County, NY, licensed in New York, Pennsylvania, New Jersey, and California. Holding Series 6, 63, and 65 registrations along with life and annuity licenses, she helps young families, new investors, retirees, and small business owners build practical financial plans focused on long-term stability and growth.",
         "As a farmer, Rochelle brings a unique understanding of protecting family land, planning ahead, and preserving generational wealth. She focuses on clear, educational guidance—helping clients understand the importance of starting early, using TERM life insurance to protect what they’re building, investing through tools like Roth IRAs, and helping small businesses establish retirement plans that benefit both the company and its employees."
       ],
-      image: "https://drive.google.com/thumbnail?id=1GlEWm3gRwfkckpbU7_f0IDKDq3HEAqPO&sz=w1000",
-      laptopImage: "https://drive.google.com/thumbnail?id=1RGzG7VXQPMdVw3g9EQTe21wXf9w93bNT&sz=w1000"
+      image: "/images/advisor-rochelle-beck.png",
+      laptopImage: "/images/advisor-rochelle-beck-laptop.png"
     },
     {
       name: "Val Ozer",
@@ -170,8 +166,8 @@ export default function Advisors({ onOpenContact }: { onOpenContact: () => void 
         "Val Ozer (Registered Name: Valerie Susan Ozer) is a Regional Manager and Financial Advisor holding Series 6, 63, and 65 licenses, along with PMP, CPCU, and AFSB certifications. She earned a B.S. in Chemistry from the University of Connecticut — where she affiliated with the American Chemical Honor Society — and a Master's in Accounting and Business Administration from the University of New Haven with high honors. Comfortable with numbers and analysis, Val began her career in scientific research before transitioning to financial services after seeing the potential for more direct, individual impact. She then spent years as a surety executive in corporate environments, evaluating hundreds of construction companies and service businesses of all sizes — gaining deep insight into the real challenges faced by business owners every day.",
         "With over 20 years in financial services, Val specializes in helping businesses and families build customized strategies aligned with their individual goals, whether creating financial freedom now, planning for retirement, or establishing a lasting legacy for loved ones. Her approach is rooted in listening first and always acting in the client's best interest — guiding each person through education and tailored financial solutions that truly fit their life."
       ],
-      image: "https://drive.google.com/thumbnail?id=1tCyddgf5NImd9v9BrsC3qKo_spm64Arb&sz=w1000",
-      laptopImage: "https://drive.google.com/thumbnail?id=1DLqfSboUPTZUftRitmRqpP2hUOl2em36&sz=w1000",
+      image: "/images/advisor-val-ozer.png",
+      laptopImage: "/images/advisor-val-ozer-laptop.png",
       isReversed: true
     }
   ];

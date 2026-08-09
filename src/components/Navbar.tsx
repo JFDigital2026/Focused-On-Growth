@@ -35,7 +35,7 @@ export default function Navbar({ onOpenContact }: NavbarProps) {
      <div className="container mx-auto px-6 h-20 flex items-center justify-between">
         <Link to="/" className="flex items-center">
           <img 
-            src="https://drive.google.com/thumbnail?id=1jn5yjwywblVG_yn-STFI8zsabJ9TurNJ&sz=w1000" 
+            src="/images/logo.png" 
             alt="Focused On Growth Logo" 
             className="max-h-12 w-auto object-contain"
           />

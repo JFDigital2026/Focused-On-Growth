@@ -10,12 +10,12 @@ export default function Footer() {
             {/* Logo */}
             <div className="flex-shrink-0">
               <img 
-                src="https://drive.google.com/thumbnail?id=1jn5yjwywblVG_yn-STFI8zsabJ9TurNJ&sz=w1000" 
+                src="/images/logo.png" 
                 alt="Focused On Growth Logo" 
                 className="hidden lg:block max-h-20 w-auto object-contain"
               />
               <img 
-                src="https://drive.google.com/thumbnail?id=1A475bCT0xsTXkQNpJ-kxAz5T0oA88BbE&sz=w1000" 
+                src="/images/logo-compact.png" 
                 alt="Focused On Growth Logo Mobile/Tablet" 
                 className="lg:hidden max-h-8 md:max-h-12 w-auto object-contain"
               />
@@ -24,9 +24,11 @@ export default function Footer() {
             {/* Office Location */}
             <div className="text-left whitespace-nowrap">
               <h4 className="font-bold text-[#191919] mb-0.5 md:mb-1 text-[8px] md:text-sm">Office:</h4>
-              <p className="text-[#191919]/70 text-[7px] md:text-sm leading-tight">
-                31 Oak Avenue, Chalfont, Pa 18914
-              </p>
+              <address className="not-italic text-[#191919]/70 text-[7px] md:text-sm leading-tight">
+                1098 Washington Crossing Rd<br />
+                Washington Crossing, PA 18977<br />
+                United States
+              </address>
               <p className="text-[#1999f0] font-bold mt-0.5 text-[8px] md:text-sm">215-752-3409</p>
             </div>
 

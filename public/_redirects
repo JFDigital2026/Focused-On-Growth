@@ -1,0 +1,6 @@
+# Single-page app fallback.
+# React Router handles /advisors, /services and /careers in the browser, but a
+# direct visit or refresh asks the host for a file that does not exist. Serve
+# index.html for any unmatched path (200, not a redirect) and let the router
+# resolve it. Without this, every page except / returns 404 on Cloudflare Pages.
+/*    /index.html   200

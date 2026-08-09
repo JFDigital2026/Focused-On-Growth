@@ -1,16 +1,103 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, CheckCircle2 } from "lucide-react";
-import { useForm, ValidationError } from '@formspree/react';
 import Button from "./Button";
+import { CONTACT_ENDPOINT, CONTACT_PHONE } from "../config";
 
 interface ContactModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+export interface ContactFormValues {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  email: string;
+  message: string;
+  consent: boolean;
+  /** Honeypot. Always empty for real people; bots fill it in. */
+  company: string;
+}
+
+/**
+ * Delivers a contact form submission to the Google Apps Script web app,
+ * which emails it onward. Throws on failure so the modal shows its error
+ * state.
+ *
+ * The body is sent as text/plain on purpose. That keeps it a "simple" CORS
+ * request, so the browser skips the preflight OPTIONS call that Apps Script
+ * cannot respond to.
+ */
+async function submitContactForm(values: ContactFormValues): Promise<void> {
+  if (!CONTACT_ENDPOINT) {
+    throw new Error("Contact endpoint is not configured.");
+  }
+
+  const response = await fetch(CONTACT_ENDPOINT, {
+    method: "POST",
+    body: JSON.stringify(values),
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    redirect: "follow",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
+  }
+
+  const result = await response.json();
+  if (!result.ok) {
+    throw new Error(result.error || "Submission was rejected.");
+  }
+}
+
 export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
-  const [state, handleSubmit] = useForm('xeelpjpz');
+  const [submitting, setSubmitting] = useState(false);
+  const [succeeded, setSucceeded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset back to a blank form the next time the modal is opened.
+  useEffect(() => {
+    if (!isOpen) return;
+    setSubmitting(false);
+    setSucceeded(false);
+    setError(null);
+  }, [isOpen]);
+
+  // Close on Escape while the modal is open.
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      await submitContactForm({
+        firstName: String(data.get("firstName") ?? ""),
+        lastName: String(data.get("lastName") ?? ""),
+        phone: String(data.get("phone") ?? ""),
+        email: String(data.get("email") ?? ""),
+        message: String(data.get("message") ?? ""),
+        consent: data.get("consent") === "on",
+        company: String(data.get("company") ?? ""),
+      });
+      setSucceeded(true);
+    } catch (err) {
+      console.error("[ContactModal] submission failed:", err);
+      setError(`Something went wrong. Please call us at ${CONTACT_PHONE}.`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -30,6 +117,9 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Contact us"
             className="relative w-full max-w-md bg-[#F1F3F6] rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
           >
             <div className="p-8 md:p-10 overflow-y-auto custom-scrollbar">
@@ -37,14 +127,15 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <h2 className="text-4xl font-black text-[#191919] tracking-tight">CONTACT US</h2>
                 <button
                   onClick={onClose}
+                  aria-label="Close contact form"
                   className="p-2 hover:bg-black/5 rounded-full transition-colors text-[#191919]/50"
                 >
                   <X size={24} />
                 </button>
               </div>
 
-              {state.succeeded ? (
-                <motion.div 
+              {succeeded ? (
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="py-12 text-center"
@@ -67,6 +158,22 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                   </p>
 
                   <form onSubmit={handleSubmit} className="space-y-6">
+                    {/*
+                      Honeypot. Hidden from people and skipped by screen
+                      readers and tabbing, but bots that fill every field
+                      will trip it and get their submission dropped.
+                    */}
+                    <div className="absolute left-[-9999px] top-0" aria-hidden="true">
+                      <label htmlFor="company">Company (leave this blank)</label>
+                      <input
+                        type="text"
+                        id="company"
+                        name="company"
+                        tabIndex={-1}
+                        autoComplete="off"
+                      />
+                    </div>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="relative">
                         <label htmlFor="firstName" className="block text-[10px] font-bold text-[#191919] uppercase tracking-widest mb-1">
@@ -80,7 +187,6 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                           className="w-full bg-transparent border-b-2 border-[#191919]/10 py-2 text-[#191919] placeholder-[#191919]/30 placeholder:text-[14px] focus:border-[#1999f0] outline-none transition-colors font-medium"
                           placeholder="First name"
                         />
-                        <ValidationError prefix="First Name" field="firstName" errors={state.errors} className="text-red-500 text-[10px] mt-1" />
                       </div>
                       <div className="relative">
                         <label htmlFor="lastName" className="block text-[10px] font-bold text-[#191919] uppercase tracking-widest mb-1">
@@ -94,7 +200,6 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                           className="w-full bg-transparent border-b-2 border-[#191919]/10 py-2 text-[#191919] placeholder-[#191919]/30 placeholder:text-[14px] focus:border-[#1999f0] outline-none transition-colors font-medium"
                           placeholder="Last name"
                         />
-                        <ValidationError prefix="Last Name" field="lastName" errors={state.errors} className="text-red-500 text-[10px] mt-1" />
                       </div>
                     </div>
 
@@ -111,7 +216,6 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                           className="w-full bg-transparent border-b-2 border-[#191919]/10 py-2 text-[#191919] placeholder-[#191919]/30 placeholder:text-[14px] focus:border-[#1999f0] outline-none transition-colors font-medium"
                           placeholder="(555) 000-0000"
                         />
-                        <ValidationError prefix="Phone" field="phone" errors={state.errors} className="text-red-500 text-[10px] mt-1" />
                       </div>
                       <div className="relative">
                         <label htmlFor="email" className="block text-[10px] font-bold text-[#191919] uppercase tracking-widest mb-1">
@@ -125,7 +229,6 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                           className="w-full bg-transparent border-b-2 border-[#191919]/10 py-2 text-[#191919] placeholder-[#191919]/30 placeholder:text-[14px] focus:border-[#1999f0] outline-none transition-colors font-medium"
                           placeholder="name@email.com"
                         />
-                        <ValidationError prefix="Email" field="email" errors={state.errors} className="text-red-500 text-[10px] mt-1" />
                       </div>
                     </div>
 
@@ -140,16 +243,15 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                         className="w-full bg-transparent border-b-2 border-[#191919]/10 py-2 text-[#191919] placeholder-[#191919]/30 placeholder:text-[14px] focus:border-[#1999f0] outline-none transition-colors font-medium resize-none"
                         placeholder="Tell us more..."
                       ></textarea>
-                      <ValidationError prefix="Message" field="message" errors={state.errors} className="text-red-500 text-[10px] mt-1" />
                     </div>
 
                     <label className="flex items-start gap-3 cursor-pointer group">
                       <div className="relative flex items-center mt-1">
-                        <input 
-                          type="checkbox" 
+                        <input
+                          type="checkbox"
                           name="consent"
-                          required 
-                          className="peer h-4 w-4 cursor-pointer appearance-none rounded border-2 border-[#191919]/20 transition-all checked:bg-[#1999f0] checked:border-[#1999f0]" 
+                          required
+                          className="peer h-4 w-4 cursor-pointer appearance-none rounded border-2 border-[#191919]/20 transition-all checked:bg-[#1999f0] checked:border-[#1999f0]"
                         />
                         <svg className="absolute h-4 w-4 pointer-events-none hidden peer-checked:block text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                       </div>
@@ -158,14 +260,20 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
                       </span>
                     </label>
 
+                    {error && (
+                      <p role="alert" className="text-red-500 text-[10px] font-medium">
+                        {error}
+                      </p>
+                    )}
+
                     <div className="pt-4 flex justify-center">
-                      <Button 
+                      <Button
                         type="submit"
-                        disabled={state.submitting}
+                        disabled={submitting}
                         showIcon={false}
                         className="w-full py-4 text-lg rounded-full shadow-lg hover:shadow-xl transition-shadow disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {state.submitting ? "Sending..." : "Submit"}
+                        {submitting ? "Sending..." : "Submit"}
                       </Button>
                     </div>
                   </form>
