@@ -268,9 +268,21 @@ function verifyTurnstile(token) {
     var body = JSON.parse(res.getContentText());
 
     if (body.success !== true) {
-      // Cloudflare says exactly why. Without this it is guesswork.
-      console.error('Turnstile rejected: ' + JSON.stringify(body['error-codes'] || []) +
-                    ' hostname=' + (body.hostname || 'n/a'));
+      // Cloudflare says exactly why. Stash it somewhere readable, because the
+      // Executions view often will not expand logs for web app calls.
+      var detail = {
+        at: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd HH:mm:ss'),
+        codes: body['error-codes'] || [],
+        hostname: body.hostname || 'n/a',
+        tokenLength: String(token).trim().length
+      };
+      console.error('Turnstile rejected: ' + JSON.stringify(detail));
+      try {
+        PropertiesService.getScriptProperties()
+          .setProperty('LAST_TURNSTILE_ERROR', JSON.stringify(detail));
+      } catch (storeErr) {
+        // Diagnostics must never break a request.
+      }
     }
     return { ok: body.success === true, codes: body['error-codes'] || [] };
   } catch (err) {
@@ -453,6 +465,26 @@ function logToSheet(row) {
     // Logging must never cost a submission. The email already went out.
     console.error('Sheet logging failed: ' + err);
   }
+}
+
+/**
+ * Run this from the editor after a failed submission to see exactly why
+ * Cloudflare turned the token down. Reads from the execution log.
+ *
+ *   timeout-or-duplicate   -> the token expired (5 minute life) or was
+ *                             submitted twice.
+ *   invalid-input-response -> the token did not match this widget; check the
+ *                             reported hostname against the widget's
+ *                             allowed hostnames.
+ *   invalid-input-secret   -> wrong secret. Run testTurnstileSecret().
+ */
+function showLastTurnstileError() {
+  var raw = PropertiesService.getScriptProperties().getProperty('LAST_TURNSTILE_ERROR');
+  if (!raw) {
+    console.log('No Turnstile failure recorded yet. Submit the form once, then run this again.');
+    return;
+  }
+  console.log('Last Turnstile failure: ' + raw);
 }
 
 /** Run once from the editor to print the log Sheet's URL. */

@@ -103,7 +103,42 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
   const turnstileRef = useRef<HTMLDivElement | null>(null);
   const widgetIdRef = useRef<string | null>(null);
   const tokenRef = useRef<string>("");
+  const tokenIssuedAtRef = useRef<number>(0);
   const openedAtRef = useRef<number>(0);
+
+  /**
+   * Returns a token Cloudflare will still accept.
+   *
+   * Turnstile tokens are single use and expire after 5 minutes. Someone
+   * writing a considered message can easily exceed that, so if the current
+   * token is stale we discard it and wait for the widget to issue a new one
+   * rather than submitting something the server is bound to reject.
+   */
+  const getFreshToken = async (): Promise<string> => {
+    if (!TURNSTILE_SITE_KEY) return "";
+
+    const MAX_TOKEN_AGE_MS = 150000; // 2.5 min, comfortably inside the 5 min life
+    const age = Date.now() - tokenIssuedAtRef.current;
+    if (tokenRef.current && age < MAX_TOKEN_AGE_MS) {
+      return tokenRef.current;
+    }
+
+    tokenRef.current = "";
+    if (widgetIdRef.current && window.turnstile) {
+      try {
+        window.turnstile.reset(widgetIdRef.current);
+      } catch {
+        // Widget is wedged; the wait below will time out and we report it.
+      }
+    }
+
+    const deadline = Date.now() + 8000;
+    while (Date.now() < deadline) {
+      if (tokenRef.current) return tokenRef.current;
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+    return "";
+  };
 
   // Reset back to a blank form the next time the modal is opened.
   useEffect(() => {
@@ -129,12 +164,15 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
           sitekey: TURNSTILE_SITE_KEY,
           callback: (token: string) => {
             tokenRef.current = token;
+            tokenIssuedAtRef.current = Date.now();
           },
           "expired-callback": () => {
             tokenRef.current = "";
+            tokenIssuedAtRef.current = 0;
           },
           "error-callback": () => {
             tokenRef.current = "";
+            tokenIssuedAtRef.current = 0;
           },
           theme: "light",
           size: "flexible",
@@ -171,17 +209,16 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
     e.preventDefault();
     const data = new FormData(e.currentTarget);
 
-    // Turnstile usually resolves on its own within a second of the form
-    // opening. If it has not, say so rather than posting a doomed request.
-    if (TURNSTILE_SITE_KEY && !tokenRef.current) {
-      setError("Still verifying you are human. Give it a second and try again.");
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
 
     try {
+      const token = await getFreshToken();
+      if (TURNSTILE_SITE_KEY && !token) {
+        setError("Still verifying you are human. Give it a moment and try again.");
+        return;
+      }
+
       await submitContactForm({
         firstName: String(data.get("firstName") ?? ""),
         lastName: String(data.get("lastName") ?? ""),
@@ -191,7 +228,7 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
         consent: data.get("consent") === "on",
         advisor,
         company: String(data.get("company") ?? ""),
-        turnstileToken: tokenRef.current,
+        turnstileToken: token,
         elapsedMs: openedAtRef.current ? Date.now() - openedAtRef.current : 0,
       });
       setSucceeded(true);
@@ -204,6 +241,7 @@ export default function ContactModal({ isOpen, onClose, advisor = "" }: ContactM
       );
       // A token is single use. Get a fresh one before the visitor retries.
       tokenRef.current = "";
+      tokenIssuedAtRef.current = 0;
       if (widgetIdRef.current && window.turnstile) {
         try {
           window.turnstile.reset(widgetIdRef.current);
