@@ -111,7 +111,7 @@ export default function Advisors({ onOpenContact }: { onOpenContact: (advisor?: 
       name: "David Schimpf",
       title: "Investment Advisor Representative",
       bio: [
-        "David started in the financial services industry in 2005. With over two decades of experience, he brings a unique perspective and expertise to managing money through various marketing environments. Specializing in retirement planning, employer sponsored plans, and portfolio analysis and construction, Dave personally manages over 85 million in assets. He holds a series 6, 63, 65 and 26 investment license, as well as an MLO, life insurance, and personal lines license."
+        "David started in the financial services industry in 2005. With over two decades of experience, he brings a unique perspective and expertise to managing money through various marketing environments. Specializing in retirement planning, employer sponsored plans, and portfolio analysis and construction, Dave personally manages over 100 million in assets. He holds a series 6, 63, 65 and 26 investment license, as well as an MLO, life insurance, and personal lines license."
       ],
       image: "/images/advisor-david-schimpf.png",
       laptopImage: "/images/advisor-david-schimpf-laptop.png"

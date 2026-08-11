@@ -66,26 +66,19 @@ export default function Hero({ onOpenContact }: HeroProps) {
                   <Button variant="secondary" onClick={() => navigate('/services')} className="text-xs md:text-base py-2.5 md:py-4 px-4 md:px-8">Services</Button>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-3 md:gap-x-8 lg:gap-x-4">
+                <div className="flex items-center gap-4 md:gap-6">
                   <div>
                     <div className="text-xl md:text-4xl lg:text-3xl font-bold">
                       <Counter value={20} />+
                     </div>
                     <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">Years Exp</div>
                   </div>
-                  <div className="hidden lg:block w-px h-8 md:h-12 lg:h-10 bg-secondary/20" />
-                  <div>
-                    <div className="text-xl md:text-4xl lg:text-3xl font-bold">
-                      $<Counter value={100} />M
-                    </div>
-                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">AUM (Personal)</div>
-                  </div>
-                  <div className="hidden lg:block w-px h-8 md:h-12 lg:h-10 bg-secondary/20" />
+                  <div className="w-px h-8 md:h-12 lg:h-10 bg-secondary/20" />
                   <div>
                     <div className="text-xl md:text-4xl lg:text-3xl font-bold">
                       $<Counter value={200} />M
                     </div>
-                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">AUM (Team)</div>
+                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">AUM</div>
                   </div>
                 </div>
               </div>

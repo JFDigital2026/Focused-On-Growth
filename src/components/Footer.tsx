@@ -26,8 +26,8 @@ export default function Footer() {
               <h4 className="font-bold text-[#191919] mb-0.5 md:mb-1 text-[8px] md:text-sm">Office:</h4>
               <address className="not-italic text-[#191919]/70 text-[7px] md:text-sm leading-tight">
                 1098 Washington Crossing Rd<br />
-                Washington Crossing, PA 18977<br />
-                United States
+                Suite 3B<br />
+                Washington Crossing, PA 18977
               </address>
               <p className="text-[#1999f0] font-bold mt-0.5 text-[8px] md:text-sm">215-752-3409</p>
             </div>
