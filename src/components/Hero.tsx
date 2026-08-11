@@ -78,7 +78,7 @@ export default function Hero({ onOpenContact }: HeroProps) {
                     <div className="text-xl md:text-4xl lg:text-3xl font-bold">
                       $<Counter value={200} />M
                     </div>
-                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">AUM</div>
+                    <div className="text-[9px] md:text-sm text-secondary/60 uppercase tracking-wider font-bold">Managed</div>
                   </div>
                 </div>
               </div>
