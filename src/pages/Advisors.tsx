@@ -142,7 +142,7 @@ export default function Advisors({ onOpenContact }: { onOpenContact: (advisor?: 
       name: "Liana Jones",
       title: "Investment Advisor Representative",
       bio: [
-        "Liana graduated in 2024 from Penn State University with a degree in Finance, where she also competed as a four-year Division I softball player. Liana currently holds her life insurance license and is actively working toward completing her securities licensing exams.",
+        "Liana graduated in 2024 from Penn State University with a degree in Finance, where she also competed as a four-year Division I softball player. She has since passed her securities licensing exams and now serves clients as an Investment Advisor Representative.",
         "She is passionate about building meaningful relationships and is committed to helping her clients feel confident and informed in their financial decisions. Dedicated, hardworking, and driven to continuously grow, Liana strives to provide thoughtful guidance and dependable support to every client she serves."
       ],
       image: "/images/advisor-liana-jones.png",
